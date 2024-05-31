@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FastAPI Frontend</title>
+    <link rel="stylesheet" type="text/css" href="/static/style.css">
+</head>
+<body>
+    <h1>Biomedical Named Entity Recognition</h1>
+    <textarea id="textInput" rows="4" cols="50"></textarea><br>
+    <button onclick="processText()">Process Text</button><br>
+    <div id="result"></div>
+
+    <script>
+        async function processText() {
+            const text = document.getElementById("textInput").value;
+            const response = await fetch('/process_text', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({text: text})
+            });
+            const data = await response.json();
+            // Display the extracted entities
+            displayEntities(data.entities);
+        }
+    
+        function displayEntities(entities) {
+            const resultDiv = document.getElementById("result");
+            // Clear previous results
+            resultDiv.innerHTML = "";
+            // Iterate over entities and display them
+            entities.forEach(entity => {
+                const entityDiv = document.createElement("div");
+                entityDiv.innerText = `Entity: ${entity.entity}, Score: ${entity.score}`;
+                resultDiv.appendChild(entityDiv);
+            });
+        }
+    </script>
+    
+</body>
+</html>
