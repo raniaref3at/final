@@ -2,7 +2,7 @@ from fastapi import FastAPI, Request
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse, JSONResponse
 from pydantic import BaseModel
-from .ner_model import extract_entities
+from backend.ner_model import extract_entities
 
 app = FastAPI()
 
@@ -21,6 +21,7 @@ async def process_text(text_input: TextInput):
 
 def process_entities(entities: list, input_text: str) -> list:
     processed_entities = []
+    print (entity)
     for entity in entities:
         # Extract the recognized word from the input text based on start and end indices
         if entity["start"] is not None and entity["end"] is not None:
