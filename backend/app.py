@@ -3,13 +3,13 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse, JSONResponse
 from pydantic import BaseModel
 from backend.ner_model import extract_entities
+import ast
+
 
 app = FastAPI()
 
-# Mount static files directory for frontend
 app.mount("/static", StaticFiles(directory="frontend"), name="static")
 
-# Example API endpoint to process text
 class TextInput(BaseModel):
     text: str
 
@@ -20,35 +20,37 @@ async def process_text(text_input: TextInput):
     return JSONResponse(content={"entities": processed_entities})
 
 def process_entities(entities: list, input_text: str) -> list:
+    text = input_text.split()
+    entities_info = []
     processed_entities = []
-    print (entity)
-    for entity in entities:
-        # Extract the recognized word from the input text based on start and end indices
-        if entity["start"] is not None and entity["end"] is not None:
-            word = input_text[entity["start"]:entity["end"]]
+    for i in range(len(entities)):
+        if isinstance(entities[i], float):
+            entities_info.append(float(entities[i]))
         else:
-            word = "not found"
-        print("Entity:", entity)
-        print("Start:", entity["start"])
-        print("End:", entity["end"])
-        print("Extracted Word:", word)
-        # Add the entity to the list with the desired fields
+            entities_info.append(str(entities[i]))
+        
+        info_dict = ast.literal_eval(entities_info[i])
+        index_value = info_dict.get('index', -1)
+        
+        if index_value != -1:
+            index_value -= 1
+        
+        if 0 <= index_value < len(text):
+            disease_word = text[index_value]
+        else:
+            disease_word = None
+        
         processed_entity = {
-            "entity_group": entity["entity"],
-            "score": float(entity["score"]),
-            "Disease": word,  # Assign the extracted word to the "Disease" field
-            "start": entity["start"],  # Add start position
-            "end": entity["end"]  # Add end position
+            "entity_group": entities[i]["entity"],
+            "score": float(entities[i]["score"]),
+            "Disease": disease_word,
+            "start": entities[i]["start"],
+            "end": entities[i]["end"]
         }
         processed_entities.append(processed_entity)
     return processed_entities
 
 
-
-
-
-
-# Serve index.html as the main page
 @app.get("/", response_class=HTMLResponse)
 async def read_index(request: Request):
     with open("frontend/index.html", "r") as f:
